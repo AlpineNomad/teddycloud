@@ -13,7 +13,6 @@
 #include "fs_port.h"
 #include "handler.h"
 #include "handler_api.h"
-#include "mutex_manager.h"
 #include "handler_cloud.h"
 #include "settings.h"
 #include "stats.h"
@@ -297,11 +296,6 @@ error_t handleApiGetIndex(HttpConnection *connection, const char_t *uri, const c
     {
         setting_item_t *opt = settings_get_ovl(pos, overlay);
 
-        if (get_overlay_id(overlay) > 0 && osStrncmp(opt->option_name, "core.tag_filter.", 16) == 0)
-        {
-            continue;
-        }
-
         if (opt->type == TYPE_TREE_DESC)
         {
             continue;
@@ -544,14 +538,6 @@ error_t handleApiSettingsSet(HttpConnection *connection, const char_t *uri, cons
 
         TRACE_INFO("Setting: '%s' to '%s'\r\n", item, data);
 
-        if (osStrcmp(item, "core.tag_filter.content_id") == 0 &&
-            (size != 8 || strspn(data, "0123456789abcdefABCDEF") != 8))
-        {
-            httpPrepareHeader(connection, "text/plain; charset=utf-8", 0);
-            connection->response.statusCode = 400;
-            return httpWriteResponseString(connection, "Expected exactly 8 hexadecimal digits (for example FFFFFFFF).", false);
-        }
-
         char overlay[16];
         osStrcpy(overlay, "");
         if (queryGet(queryString, "overlay", overlay, sizeof(overlay)))
@@ -593,14 +579,7 @@ error_t handleApiSettingsReset(HttpConnection *connection, const char_t *uri, co
     {
         if (opt->overlayed || opt == opt_src)
         {
-            bool tag_filter = osStrncmp(item, "core.tag_filter.", 16) == 0;
-            if (tag_filter)
-            {
-                mutex_lock(MUTEX_SETTINGS);
-                if (opt->type == TYPE_STRING) osFreeMem(*((char **)opt->ptr));
-            }
             overlay_settings_init_opt(opt, opt_src);
-            if (tag_filter) mutex_unlock(MUTEX_SETTINGS);
             if (opt == opt_src)
             {
                 TRACE_INFO("Setting: '%s' reset to default\r\n", item);

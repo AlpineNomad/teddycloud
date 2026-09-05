@@ -1,10 +1,10 @@
 {
-  "web_version": "v0.7.0-tag-filter",
+  "web_version": "v0.7.0",
   "web_gitDirty": "0",
-  "web_gitTag": "unknown",
-  "web_gitDateTime": "2026-09-05 12:20:15 +0200",
-  "web_gitSha": "eaab4998cde2304c97a78545998b0ec05bdff76f",
-  "web_gitTagPrefix": "unknown",
-  "web_gitShortSha": "eaab499",
-  "_eof": ""
+  "web_gitTag": "tcw_v0.7.0",
+  "web_gitDateTime": "2026-08-20 10:06:46 +0200",
+  "web_gitSha": "e2f40c2c69a3b2b46093ddc5542773dd0fa0067e",
+  "web_gitTagPrefix": "tcw",
+  "web_gitShortSha": "e2f40c2",
+  "_eof":""
 }

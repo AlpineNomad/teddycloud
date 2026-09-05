@@ -54,6 +54,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           submodules: recursive
+          fetch-depth: 0
           ref: ${{ inputs.tcw_commit_hash }}
       - name: Test git version
         run: make test_git_version
@@ -90,7 +91,7 @@ jobs:
             type=match,pattern=tc_v(\d+),group=1
             type=match,pattern=tc_v(\d+.\d+),group=1
             type=match,pattern=tc_v(\d+.\d+.\d+),group=1
-            type=match,pattern=tc_v(\d+.\d+.\d+-\S+),group=1
+            type=match,pattern=^tc_v(\d+\.\d+\.\d+(?:p\d+)?(?:-\S+)?)$,group=1,priority=950
           flavor: |
             prefix=arch_,onlatest=true
             suffix=_${{ matrix.platform }}_${{ inputs.system }},onlatest=${{ inputs.primary_image }}
@@ -256,7 +257,7 @@ jobs:
             type=match,pattern=tc_v(\d+),group=1
             type=match,pattern=tc_v(\d+.\d+),group=1
             type=match,pattern=tc_v(\d+.\d+.\d+),group=1
-            type=match,pattern=tc_v(\d+.\d+.\d+-\S+),group=1
+            type=match,pattern=^tc_v(\d+\.\d+\.\d+(?:p\d+)?(?:-\S+)?)$,group=1,priority=950
           flavor: |
             suffix=_${{ inputs.system }},onlatest=${{ !inputs.primary_image }}
 

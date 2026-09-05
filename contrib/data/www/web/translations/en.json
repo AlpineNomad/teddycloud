@@ -981,17 +981,6 @@
         "teddycloudStatusOnline": "Teddycloud server running fine"
     },
     "settings": {
-        "tagFilter": {
-            "enabled": {
-                "label": "Enable tag filter",
-                "description": "Ignore matching tags in teddyCloud. This does not block RFID detection or playback of audio files already stored on the box."
-            },
-            "content_id": {
-                "label": "Blocked filename ID part",
-                "description": "Exactly 8 hex digits, e.g. FFFFFFFF. Matches the last 8 rUID digits (filename), not the folder name or audio ID. Case insensitive."
-            },
-            "invalidId": "Enter exactly 8 hex digits (0–9, A–F)."
-        },
         "certificates": {
             "hint": "These are the certificates used for general use of the TeddyCloud. Specific ones can be used for your Tonieboxes. To change these, go to ",
             "information": "Information",

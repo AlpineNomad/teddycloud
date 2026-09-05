@@ -981,17 +981,6 @@
         "teddycloudStatusOnline": "Le serveur TeddyCloud fonctionne correctement"
     },
     "settings": {
-        "tagFilter": {
-            "enabled": {
-                "label": "Activer le filtre de tags",
-                "description": "Ignorer les tags correspondants dans teddyCloud. Cela ne bloque pas la détection RFID ni la lecture des fichiers audio déjà enregistrés sur la box."
-            },
-            "content_id": {
-                "label": "Partie de l’identifiant du fichier à bloquer",
-                "description": "Exactement 8 chiffres hexadécimaux, par exemple FFFFFFFF. Compare les 8 derniers caractères de la rUID (nom de fichier), et non le dossier ou l’identifiant audio. Insensible à la casse."
-            },
-            "invalidId": "Saisissez exactement 8 chiffres hexadécimaux (0–9, A–F)."
-        },
         "certificates": {
             "hint": "Voici les certificats utilisés pour l'utilisation générale de TeddyCloud. Des certificats spécifiques peuvent être utilisés pour vos Tonieboxes. Pour les changer, allez à ",
             "information": "Informations",

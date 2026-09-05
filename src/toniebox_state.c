@@ -1,6 +1,5 @@
 #include "toniebox_state.h"
 #include "settings.h"
-#include "tag_filter.h"
 #include "server_helpers.h"
 
 static toniebox_state_t Box_State_Overlay[MAX_OVERLAYS];
@@ -24,11 +23,6 @@ toniebox_state_t *get_toniebox_state_id(uint8_t id)
 
 void tbs_tag_placed(client_ctx_t *client_ctx, uint64_t uid, bool valid)
 {
-    if (tagFilterBlocksUid(uid))
-    {
-        TRACE_INFO("Tag filter: ignored placement of UID %016" PRIX64 "\r\n", uid);
-        return;
-    }
     client_ctx->state->tag.uid = uid;
     client_ctx->state->tag.valid = valid;
     if (valid)
@@ -47,11 +41,6 @@ void tbs_tag_placed(client_ctx_t *client_ctx, uint64_t uid, bool valid)
 
 void tbs_tag_removed(client_ctx_t *client_ctx, uint64_t uid, bool valid)
 {
-    if (tagFilterBlocksUid(uid))
-    {
-        TRACE_INFO("Tag filter: ignored removal of UID %016" PRIX64 "\r\n", uid);
-        return;
-    }
     client_ctx->state->tag.uid = uid;
     client_ctx->state->tag.valid = valid;
     if (valid)

@@ -3,7 +3,6 @@
 #include <string.h>
 
 #include "settings.h"
-#include "tag_filter.h"
 #include "fs_ext.h"
 
 #include "handler.h"
@@ -373,11 +372,6 @@ error_t handleCloudClaim(HttpConnection *connection, const char_t *uri, const ch
         TRACE_WARNING(" >>  invalid URI\r\n");
         return ERROR_NOT_FOUND;
     }
-    if (tagFilterBlocksRuid(ruid))
-    {
-        TRACE_INFO("Tag filter: ignored claim for rUID %s\r\n", ruid);
-        return ERROR_NOT_FOUND;
-    }
     char msg[TONIE_AUTH_TOKEN_LENGTH * 2 + 1] = {0};
     convertTokenBytesToString(token, msg, client_ctx->settings->log.logFullAuth);
     TRACE_INFO(" >> client claim requested rUID %s, auth %s\r\n", ruid, msg);
@@ -466,13 +460,6 @@ tonie_info_t *getTonieInfoForRequest(HttpConnection *connection, const char_t *u
     if (osStrlen(ruid) != 16)
     {
         TRACE_WARNING(" >>  invalid URI\r\n");
-        *error = ERROR_NOT_FOUND;
-        return NULL;
-    }
-
-    if (tagFilterBlocksRuid(ruid))
-    {
-        TRACE_INFO("Tag filter: ignored content request for rUID %s\r\n", ruid);
         *error = ERROR_NOT_FOUND;
         return NULL;
     }
@@ -944,10 +931,6 @@ void process_freshness_check(client_ctx_t *client_ctx, TonieFreshnessCheckReques
 
     for (size_t i = 0; i < freshnessCacheLen; i++)
     {
-        if (tagFilterBlocksUid(freshnessCache[i]))
-        {
-            continue;
-        }
         bool requested = false;
         for (size_t j = 0; j < freshReq->n_tonie_infos; j++)
         {
@@ -968,11 +951,6 @@ void process_freshness_check(client_ctx_t *client_ctx, TonieFreshnessCheckReques
 
     for (uint16_t i = 0; i < freshReq->n_tonie_infos; i++)
     {
-        if (tagFilterBlocksUid(freshReq->tonie_infos[i]->uid))
-        {
-            TRACE_INFO("Tag filter: ignored freshness check for UID %016" PRIX64 "\r\n", freshReq->tonie_infos[i]->uid);
-            continue;
-        }
         uint32_t boxAudioId = freshReq->tonie_infos[i]->audio_id;
         tonie_info_t *tonieInfo;
         tonieInfo = getTonieInfoFromUid(freshReq->tonie_infos[i]->uid, false, settings);
