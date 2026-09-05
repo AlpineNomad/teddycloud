@@ -7,6 +7,7 @@
 #include "version.h"
 #include "debug.h"
 #include "settings.h"
+#include "tag_filter.h"
 #include "mutex_manager.h"
 #include "tls_adapter.h"
 
@@ -141,6 +142,10 @@ static void option_map_init(uint8_t settingsId)
 
     OPTION_BOOL("core.flex_enabled", &settings->core.flex_enabled, TRUE, "Enable Flex-Tonie", "When enabled this UID always gets assigned the audio selected from web interface", LEVEL_DETAIL)
     OPTION_STRING("core.flex_uid", &settings->core.flex_uid, "", "Flex-Tonie UID", "UID which shall get selected audio files assigned", LEVEL_DETAIL)
+
+    OPTION_TREE_DESC("core.tag_filter", "Tag filter", LEVEL_BASIC)
+    OPTION_BOOL("core.tag_filter.enabled", &settings->core.tag_filter_enabled, TRUE, "Enable tag filter", "Ignore matching tags in teddyCloud. Does not stop RFID detection or playback of files already on the box.", LEVEL_BASIC)
+    OPTION_STRING("core.tag_filter.content_id", &settings->core.tag_filter_content_id, "FFFFFFFF", "Blocked content filename ID", "Exactly 8 hexadecimal digits. Matches the last 8 rUID digits (the content filename, not the folder or audio ID). Case insensitive.", LEVEL_BASIC)
     OPTION_UNSIGNED("core.settings_level", &settings->core.settings_level, 1, 1, 3, "Settings level", "1: Basic, 2: Detail, 3: Expert", LEVEL_BASIC)
     OPTION_BOOL("core.tonies_json_auto_update", &settings->core.tonies_json_auto_update, TRUE, "Auto-Update tonies.json", "Auto-Update tonies.json for Tonies information and images.", LEVEL_DETAIL)
     OPTION_BOOL("core.full_taf_validation", &settings->core.full_taf_validation, FALSE, "Full TAF validation", "Validate TAFs by checking the audio length and the SHA1 hash. (may be slow, as file needs to be fully read!)", LEVEL_EXPERT)
@@ -1069,6 +1074,11 @@ static error_t settings_load_ovl(bool overlay)
                             TRACE_DEBUG("%s=%f\r\n", opt->option_name, *((float *)opt->ptr));
                             break;
                         case TYPE_STRING:
+                            if (osStrcmp(option_name, "core.tag_filter.content_id") == 0 && !tagFilterValidContentId(value_str))
+                            {
+                                TRACE_WARNING("Invalid tag filter ID: expected 8 hexadecimal digits\r\n");
+                                break;
+                            }
                             osFreeMem(*((char **)opt->ptr));
                             *((char **)opt->ptr) = strdup(value_str);
                             TRACE_DEBUG("%s=%s\r\n", opt->option_name, *((char **)opt->ptr));
@@ -1228,6 +1238,11 @@ setting_item_t *settings_get_by_name_ovl(const char *item, const char *overlay_n
 
 static setting_item_t *settings_get_by_name_id(const char *item, uint8_t settingsId)
 {
+    // The filter is a server policy; a box overlay must not override it.
+    if (settingsId > 0 && osStrncmp(item, "core.tag_filter.", 16) == 0)
+    {
+        return NULL;
+    }
     int pos = 0;
     setting_item_t *option_map = Option_Map_Overlay[settingsId];
     if (!option_map)
@@ -1292,7 +1307,10 @@ bool settings_set_bool_id(const char *item, bool value, uint8_t settingsId)
         return false;
     }
 
+    bool tag_filter = osStrcmp(item, "core.tag_filter.enabled") == 0;
+    if (tag_filter) mutex_lock(MUTEX_SETTINGS);
     *((bool *)opt->ptr) = value;
+    if (tag_filter) mutex_unlock(MUTEX_SETTINGS);
 
     if (settingsId > 0)
     {
@@ -1534,16 +1552,29 @@ bool settings_set_string_id(const char *item, const char *value, uint8_t setting
         return false;
     }
 
+    if (osStrcmp(item, "core.tag_filter.content_id") == 0 && !tagFilterValidContentId(value))
+    {
+        return false;
+    }
+
     setting_item_t *opt = settings_get_by_name_id(item, settingsId);
     if (!opt || opt->type != TYPE_STRING)
     {
         return false;
     }
 
+    bool tag_filter = osStrcmp(item, "core.tag_filter.content_id") == 0;
+    char *new_ptr = strdup(value);
+    if (new_ptr == NULL)
+    {
+        return false;
+    }
+    if (tag_filter) mutex_lock(MUTEX_SETTINGS);
     char **ptr = (char **)opt->ptr;
     char *old_ptr = *ptr;
 
-    *ptr = strdup(value);
+    *ptr = new_ptr;
+    if (tag_filter) mutex_unlock(MUTEX_SETTINGS);
 
     if (settingsId > 0)
     {

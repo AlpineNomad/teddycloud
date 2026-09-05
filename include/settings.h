@@ -336,6 +336,8 @@ typedef struct
 
     bool flex_enabled;
     char *flex_uid;
+    bool tag_filter_enabled;
+    char *tag_filter_content_id;
     char *bind_ip;
 
     uint32_t http_client_timeout;
