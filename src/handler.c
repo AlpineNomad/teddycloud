@@ -1,4 +1,5 @@
 #include "handler.h"
+#include "tag_filter.h"
 #include "toniesJson.h"
 #include "server_helpers.h"
 #include "fs_ext.h"
@@ -1066,6 +1067,11 @@ void setLastUid(uint64_t uid, settings_t *settings)
 }
 void setLastRuid(char ruid[17], settings_t *settings)
 {
+    if (tagFilterBlocksRuid(ruid))
+    {
+        TRACE_INFO("Tag filter: ignored last rUID %s\r\n", ruid);
+        return;
+    }
     if (get_settings() != settings)
     {
         if (osStrcmp(settings->internal.last_ruid, ruid) != 0)

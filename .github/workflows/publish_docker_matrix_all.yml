@@ -19,6 +19,10 @@ on:
       - master
       - develop
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   test_commit_hash:
     runs-on: ubuntu-latest

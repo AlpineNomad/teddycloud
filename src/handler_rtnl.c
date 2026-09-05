@@ -152,9 +152,9 @@ int32_t read_little_endian32(const uint8_t *buf)
     return (int32_t)((uint32_t)buf[0] | (buf[1] << 8) | ((uint32_t)buf[2] << 16) | ((uint32_t)buf[3] << 24));
 }
 
-int64_t read_little_endian64(const uint8_t *buf)
+uint64_t read_little_endian64(const uint8_t *buf)
 {
-    return ((int64_t)read_little_endian32(&buf[4])) | (((uint64_t)read_little_endian32(buf)) << 32);
+    return (uint32_t)read_little_endian32(&buf[4]) | ((uint64_t)(uint32_t)read_little_endian32(buf) << 32);
 }
 
 int32_t read_big_endian32(const uint8_t *buf)
@@ -162,9 +162,10 @@ int32_t read_big_endian32(const uint8_t *buf)
     return (int32_t)((uint32_t)buf[3] | ((uint32_t)buf[2] << 8) | ((uint32_t)buf[1] << 16) | ((uint32_t)buf[0] << 24));
 }
 
-int64_t read_big_endian64(const uint8_t *buf)
+uint64_t read_big_endian64(const uint8_t *buf)
 {
-    return ((int64_t)read_big_endian32(buf)) | (((uint64_t)read_big_endian32(&buf[4])) << 32);
+    // RTNL transmits the low word first. Widen without sign-extending bit 31.
+    return (uint32_t)read_big_endian32(buf) | ((uint64_t)(uint32_t)read_big_endian32(&buf[4]) << 32);
 }
 
 static char *absolute_url(const char *url_or_path)
@@ -335,6 +336,11 @@ void rtnlEvent(HttpConnection *connection, TonieRtnlRPC *rpc, client_ctx_t *clie
 
         if (rpc->log2->function_group == RTNL2_FUGR_TAG)
         {
+            if (rpc->log2->field6.len < 8 || rpc->log2->field6.data == NULL)
+            {
+                TRACE_WARNING("Ignoring truncated RTNL tag UID\r\n");
+                return;
+            }
             if (rpc->log2->function == RTNL2_FUNC_TAG_INVALID_CC3200 || rpc->log2->function == RTNL2_FUNC_TAG_INVALID_ESP32)
             {
                 tbs_tag_placed(client_ctx, read_big_endian64(rpc->log2->field6.data), false);

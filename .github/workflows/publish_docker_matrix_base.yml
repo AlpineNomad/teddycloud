@@ -38,10 +38,8 @@ on:
 
 # permissions are needed if pushing to ghcr.io
 permissions:
+  contents: read
   packages: write
-
-env:
-  REGISTRY_IMAGE: ghcr.io/toniebox-reverse-engineering/teddycloud
 
 jobs:
   build:
@@ -51,6 +49,8 @@ jobs:
         platform: ${{ fromJson(inputs.platforms) }}
     runs-on: ubuntu-latest
     steps:
+      - name: Set registry image for this repository
+        run: echo "REGISTRY_IMAGE=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
       - uses: actions/checkout@v7
         with:
           submodules: recursive
@@ -202,6 +202,8 @@ jobs:
     needs:
       - build
     steps:
+      - name: Set registry image for this repository
+        run: echo "REGISTRY_IMAGE=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
       - name: Download digests
         uses: actions/download-artifact@v8
         with:

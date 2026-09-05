@@ -5,8 +5,10 @@ set -o pipefail
 set -o nounset
 # set -o xtrace
 
-mkdir -p /teddycloud/certs/server /teddycloud/certs/server_tb2 /teddycloud/certs/client
-cd /teddycloud
+# Set TEDDYCLOUD_BASE_PATH=/data for installations with a single data volume.
+readonly BASE_PATH="${TEDDYCLOUD_BASE_PATH:-/teddycloud}"
+mkdir -p "${BASE_PATH}/certs/server" "${BASE_PATH}/certs/server_tb2" "${BASE_PATH}/certs/client"
+cd "${BASE_PATH}"
 
 # PUID/PGID support: if set and non-zero, drop privileges to that user before
 # running teddycloud. When unset or 0, behavior is unchanged (runs as root).
@@ -36,8 +38,8 @@ if [ -n "${PUID:-}" ] && [ -n "${PGID:-}" ] && [ "${PUID}" != "0" ] && [ "${PGID
     || usermod -o -u "${PUID}" -g "${PGID}" teddy 2>/dev/null \
     || true
 
-  echo "Adjusting /teddycloud ownership to ${PUID}:${PGID}..."
-  chown -R "${PUID}:${PGID}" /teddycloud
+  echo "Adjusting ${BASE_PATH} ownership to ${PUID}:${PGID}..."
+  chown -R "${PUID}:${PGID}" "${BASE_PATH}"
 
   RUN_AS=("${DROP_PRIVS}" "teddy")
   echo "Will run teddycloud as ${PUID}:${PGID} via ${DROP_PRIVS}"
@@ -45,7 +47,7 @@ fi
 
 if [ -n "${DOCKER_TEST:-}" ]; then
   echo "Running teddycloud --docker-test..."
-  LSAN_OPTIONS=detect_leaks=0 "${RUN_AS[@]}" teddycloud --docker-test
+  LSAN_OPTIONS=detect_leaks=0 "${RUN_AS[@]}" teddycloud --base_path "${BASE_PATH}" --docker-test
 else
   # teddycloud requests an in-place restart by exiting with RETURNCODE_USER_RESTART
   # (-2 in the source), which the shell receives as the unsigned 8-bit code 254.
@@ -60,10 +62,10 @@ else
     set +o errexit
     if [ -n "${STRACE:-}" ]; then
       echo "Running teddycloud with strace..."
-      "${RUN_AS[@]}" strace -t -T teddycloud
+      "${RUN_AS[@]}" strace -t -T teddycloud --base_path "${BASE_PATH}"
     else
       echo "Running teddycloud..."
-      "${RUN_AS[@]}" teddycloud
+      "${RUN_AS[@]}" teddycloud --base_path "${BASE_PATH}"
     fi
     retVal=$?
     set -o errexit

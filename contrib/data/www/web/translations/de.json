@@ -981,6 +981,17 @@
         "teddycloudStatusOnline": "TeddyCloud Server online"
     },
     "settings": {
+        "tagFilter": {
+            "enabled": {
+                "label": "Tag-Filter aktivieren",
+                "description": "Passende Tags in teddyCloud ignorieren. RFID-Erkennung und bereits auf der Box gespeicherte Audiodateien werden dadurch nicht gesperrt."
+            },
+            "content_id": {
+                "label": "Gesperrter Dateinamen-ID-Teil",
+                "description": "Genau 8 Hex-Zeichen, z. B. FFFFFFFF. Verglichen werden die letzten 8 Zeichen der rUID (Dateiname), nicht der Ordnername oder die Audio-ID. Groß-/Kleinschreibung ist egal."
+            },
+            "invalidId": "Bitte genau 8 Hex-Zeichen (0–9, A–F) eingeben."
+        },
         "certificates": {
             "hint": "Diese sind die Zertifikate, die für die allgemeine Nutzung von der TeddyCloud genutzt werden. Für deine Tonieboxen können spezifische genutzt werden. Um diese zu ändern, gehe zu ",
             "information": "Information",
